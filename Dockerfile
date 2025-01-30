@@ -15,14 +15,37 @@ RUN apt-get update && apt-get install -y \
         build-essential \
         cmake \
         git \
+        wget \
+        libhts-dev \
+        libtabixpp-dev \
+        libtabixpp0 \
+        libbzip2-dev \
+        pybind11-dev \
+        python3.11 \
+        python3.11-dev \
         pkg-config && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/local/src
 
+# getting Zig
+RUN wget -q https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz \
+    && tar xf zig-linux-x86_64-*.tar.xz \
+    && rm zig-linux-x86_64-*.tar.xz
+ENV PATH="/usr/local/src/zig-linux-x86_64-0.13.0:${PATH}"
+
+# cloning repositories and submodules
 RUN git clone --recursive https://github.com/vcflib/vcflib.git && \
     cd vcflib && \
     git checkout ${VCFLIB_VERSION}
 
 WORKDIR /usr/local/src/vcflib
+
+RUN git submodule update --init --recursive
+
+# Configuring, building and installing vcflib
+RUN mkdir -p build && cd build && \
+    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWFA_GITMODULE=ON .. && \
+    cmake --build . -- -j 2 && \
+    ctest --verbose
