@@ -8,28 +8,49 @@
 # TO_TAG:         docker tag bunop/vcflib:latest bunop/vcflib:0.1
 #
 
-ARG VCFLIB_VERSION=v1.0.12
 FROM debian:12.9-slim
 
 RUN apt-get update && apt-get install -y \
         build-essential \
         cmake \
+        autoconf \
+        automake \
+        pkg-config \
         git \
         wget \
-        pkg-config \
+        python3 \
+        python3-dev \
+        pybind11-dev \
+        perl \
+        libpython3-dev \
         libhts-dev \
         libtabixpp-dev \
         libtabixpp0 \
-        python3-dev \
-        libpython3-dev \
-        pybind11-dev \
         libbz2-dev \
+        liblzma-dev \
+        zlib1g-dev \
+        libcurl4-gnutls-dev \
+        libssl-dev \
+        libdeflate-dev \
         pandoc && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # setting the working directory
 WORKDIR /usr/local/src
+
+# setting the environment variable for htslib version
+ARG HTSLIB_VERSION
+ENV HTSLIB_VERSION=${HTSLIB_VERSION:-1.21}
+
+# installing htslib
+RUN git clone --recursive https://github.com/samtools/htslib.git && \
+    cd htslib && \
+    git checkout ${HTSLIB_VERSION} && \
+    autoreconf -i && \
+    ./configure && \
+    make -j $(nproc) && \
+    make install
 
 # Installing Zig
 RUN wget -q https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz && \
