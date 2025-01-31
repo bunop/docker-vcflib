@@ -37,6 +37,10 @@ RUN wget -q https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz &
     ./zig-linux-x86_64-*/zig version
 ENV PATH="/usr/local/src/zig-linux-x86_64-0.13.0:${PATH}"
 
+# setting the environment variable for vcflib version
+ARG VCFLIB_VERSION
+ENV VCFLIB_VERSION=${VCFLIB_VERSION:-v1.0.12}
+
 # cloning repositories and submodules
 RUN git clone --recursive https://github.com/vcflib/vcflib.git && \
     cd vcflib && \
